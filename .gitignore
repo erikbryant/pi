@@ -1,4 +1,6 @@
-web-request-cache
+web-request-cache/
+pi/
+archive/
 
 # Local files
 .fleet/
