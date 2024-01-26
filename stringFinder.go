@@ -19,6 +19,10 @@ var (
 	target   = flag.String("target", "", "string to find")
 )
 
+const cacheDir = "../datafiles/web-request-cache/"
+const piDir = "../datafiles/pi/"
+const archiveDir = "../datafiles/archive/"
+
 // v-------------------------------- Downloader --------------------------------v
 
 // webRequest returns the contents of a REST API call
@@ -79,7 +83,7 @@ func getPi(startChunk int) {
 
 // downloadPi repeatedly requests more digits of Pi
 func downloadPi() {
-	for i := 70000; i <= 80000; i++ {
+	for i := 100001; i <= 100001; i++ {
 		if i%10 == 0 {
 			fmt.Println(i)
 		}
@@ -106,12 +110,7 @@ func packDigits(digits string) []byte {
 	return packed
 }
 
-const cacheDir = "./web-request-cache/"
-const piDir = "./pi/"
-const archiveDir = "./archive/"
-
 func inFiles() []os.FileInfo {
-
 	file, err := os.Open(cacheDir)
 	if err != nil {
 		panic(err)
@@ -162,33 +161,70 @@ func packPi() {
 	}
 }
 
-// v--------------------------------  Searcher  --------------------------------v
+func readPackedPi(startChunk int) []byte {
+	length := 1000
+	fmt.Println("Reading pi from startChunk:", startChunk, "with length:", length)
 
-// stringToDigits returns a string with each character replaced with its decimal value
-func stringToDigits(str string) string {
-	s := ""
+	fileName := fmt.Sprintf("start=%d-numberOfDigits=%d", startChunk*length, length)
+	file := path.Join(piDir, fileName)
 
-	for _, ch := range str {
-		s += fmt.Sprintf("%d", ch)
+	bytes, err := os.ReadFile(file)
+	if err != nil {
+		panic(err)
 	}
 
-	return s
+	return bytes
+}
+
+// v--------------------------------  Searcher  --------------------------------v
+
+// stringToBytes returns a byte slice representing the ASCII value of the string
+func stringToBytes(s string) []byte {
+	if len(s) == 0 {
+		panic("Empty string!")
+	}
+
+	// Convert the characters in str to their ASCII base 10 digits
+	digits := ""
+	for _, ch := range s {
+		digits += fmt.Sprintf("%d", ch)
+	}
+
+	// Convert the digits to their numeric value
+	bytes := []byte{}
+	for _, ch := range digits {
+		bytes = append(bytes, byte(ch)-'0')
+	}
+
+	return bytes
+}
+
+func splitPackedByte(b byte) (byte, byte) {
+	return (b & 0xf0) >> 4, b & 0x0f
+}
+
+func searchPi(pi, target []byte) {
+	for _, b := range pi {
+		highByte, lowByte := splitPackedByte(b)
+		if highByte == target[0] {
+			fmt.Println("Found first digit!", highByte, target[0])
+			return
+		}
+		if lowByte == target[0] {
+			fmt.Println("Found first digit!", lowByte, target[0])
+			return
+		}
+	}
 }
 
 func find(s string) {
-	//digits := stringToDigits(s)
-	//fmt.Printf("Searching PI for: %s -> %s\n", s, digits)
-	//for i := 0; i <= 63000; i++ {
-	//	pi, err := readPi(i)
-	//	if err != nil {
-	//		fmt.Println(err)
-	//		return
-	//	}
-	//	if strings.Contains(pi, digits) {
-	//		offset := i*1000 + strings.Index(pi, digits)
-	//		fmt.Printf("Found! Pattern %s -> %s starts at offset: %d\n", s, digits, offset)
-	//	}
-	//}
+	target := stringToBytes(s)
+	fmt.Printf("Searching PI for: %s -> %v\n", s, target)
+
+	for i := 0; i < 2; i++ {
+		pi := readPackedPi(i)
+		searchPi(pi, target)
+	}
 }
 
 func main() {
