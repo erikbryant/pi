@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-const cacheDir = "./web-request-cache/"
+const cacheDir = "../datafiles/web-request-cache/"
 
 // sanitize replaces reserved filesystem characters with '-'
 func sanitize(id string) string {
