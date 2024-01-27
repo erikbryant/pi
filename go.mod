@@ -1,4 +1,4 @@
-module github.com/erikbryant/stringFinder
+module github.com/erikbryant/pi
 
 go 1.21.6
 
