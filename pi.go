@@ -53,7 +53,7 @@ func digit(pi []byte, i int) byte {
 	offset := i >> 1
 
 	if offset >= len(pi) {
-		panic("Beyond end of Pi's digits")
+		return 0xff
 	}
 
 	if i&0x01 == 0 {
