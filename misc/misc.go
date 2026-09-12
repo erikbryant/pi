@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/erikbryant/web"
 	"io"
 	"os"
 	"path"
+
+	"github.com/erikbryant/web"
 )
 
 var (
@@ -17,11 +18,12 @@ var (
 const piDir = "../datafiles/pi/"
 
 // webRequest returns the contents of a REST API call
-func webRequest(url string) (map[string]interface{}, error) {
-	response, err := web.Request2(url, map[string]string{})
+func webRequest(url string) (map[string]any, error) {
+	response, err := web.Request(url, map[string]string{})
 	if err != nil {
 		return nil, fmt.Errorf("error fetching data %s", err)
 	}
+	defer response.Body.Close()
 	if response.StatusCode != 200 {
 		return nil, fmt.Errorf("got an unexpected StatusCode %v", response)
 	}
@@ -31,7 +33,7 @@ func webRequest(url string) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	var jsonObject map[string]interface{}
+	var jsonObject map[string]any
 
 	err = json.Unmarshal(contents, &jsonObject)
 	if err != nil {
@@ -42,7 +44,7 @@ func webRequest(url string) (map[string]interface{}, error) {
 }
 
 // getPi downloads a chunk of digits of pi starting at startDigit
-func getPi(startDigit, length int) (map[string]interface{}, error) {
+func getPi(startDigit, length int) (map[string]any, error) {
 	// https://pi.delivery/
 
 	url := fmt.Sprintf("https://api.pi.delivery/v1/pi?start=%d&numberOfDigits=%d", startDigit, length)
